@@ -158,7 +158,7 @@
                 let lineY = y
                 while (words.length > 0) {
                     let line = "";
-                    while (ctx.measureText(line + " " + words[0]).width <= width || line == "") {
+                    while ((ctx.measureText(line + " " + words[0]).width <= width || line == "") && words) {
                         console.log(ctx.measureText(line + " " + words[0]).width)
                         line = line + " " + words.shift();
                     } 
