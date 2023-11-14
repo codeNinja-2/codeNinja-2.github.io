@@ -32,10 +32,10 @@
                         <!--<option value="priest">Noble</option>-->
                         <option value="Scribe">Scribe</option>
                         <option value="Soldier">Soldier</option>
-                        <option value="Craftspeople">Craftspeople</option>
+                        <option value="Craftsperson">Craftsperson</option>
                         <option value="Laborers">Laborers</option>
                         <option value="Farmer">Farmer</option>
-                        <option value="EnslavedPeople">Enslaved People</option>
+                        <option value="Enslaved Person">Enslaved Person</option>
                     </select>
                     <br> <br>
 
@@ -54,25 +54,27 @@
                     <input type="text" id="cardArtCredit"> <br><br>
 
                     <span>Lore</span> <br>
-                    <input type="text" id="lore" height="700">  <br><br>
+                    <textarea id="lore"></textarea> <br><br>
 
-                    <button id="generateButton"> Generate </button>
+                    <button id="generateButton">Generate</button>
                 </div>
             </div>
         </div>
 
         <script>
             const cardTints = {
-                scribe: "#789eff",
-                soldier: "#ff7878",
-                craftspeople: "#78ffdb",
-                laborers: "#ff78b5",
-                farmer: "#c0ff78", 
-                enslavedPeople: "#ff9e78"};
+                'Scribe': "#789eff",
+                'Soldier': "#ff7878",
+                'Craftsperson': "#78ffdb",
+                'Laborer': "#ff78b5",
+                'Farmer': "#c0ff78", 
+                'Enslaved Person': "#ff9e78"
+            };
 
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
-            generateButton.addEventListener("mousedown", generate);
+
+            generateButton.addEventListener("click", generate);
 
             const template = createImage('template.svg');
 
@@ -90,7 +92,7 @@
                 const art = await getArtworkImage();
 
                 if (art) {
-                    let scale = 425 / art.width;
+                    let scale = 425 / art.height;
 
                     // 624, 425
                     let w = art.width * scale;
@@ -122,13 +124,13 @@
 
                 ctx.fillStyle = "white"
 
-                drawTextWithWraping(100, 525, document.getElementById("lore").value, 420, 30, ctx);
+                drawTextWithWraping(100, 525, document.getElementById("lore").value, 420, 1.25, ctx);
 
                 let s = 0.5;
                 let x = 220;
                 let y = 413;
 
-                ctx.strokeStyle = cardTints[rank.toLowerCase()];
+                ctx.strokeStyle = cardTints[rank];
                 ctx.lineWidth = 5;
 
                 ctx.fillStyle = "black";
@@ -144,7 +146,7 @@
 
                 ctx.fill();
 
-                ctx.fillStyle = cardTints[rank.toLowerCase()];
+                ctx.fillStyle = cardTints[rank];
 
                 ctx.font = "25px EB Garamond";
 
@@ -154,19 +156,49 @@
             }
 
             function drawTextWithWraping(x, y, text, width, lineSpacing, ctx) {
-                let words = text.split(" ");
-                let lineY = y
-                while (words.length > 0) {
-                    let line = "";
-                    while ((ctx.measureText(line + " " + words[0]).width <= width || line == "") && words) {
-                        console.log(ctx.measureText(line + " " + words[0]).width)
-                        line = line + " " + words.shift();
-                    } 
+                const segments = [];
 
-                    console.log(line);
-                    ctx.fillText(line, x, lineY)
-                    lineY += lineSpacing
+                for (const char of text) {
+                    if (char == '\n') segments.push('\n', '');
+                    else if (char == ' ') segments.push('');
+                    else {
+                        if (segments.length > 0) segments[segments.length - 1] += char;
+                        else segments.push(char);
+                    }
                 }
+
+                const drawLine = metrics => {
+                    ctx.fillText(currentLine, x, y);
+                    y += (metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent) * lineSpacing;
+
+                    currentLine = '';
+                }
+
+                let currentLine = '';
+
+                for (const segment of segments) {
+                    let metrics;
+
+                    if (segment == '\n') {
+                        metrics = ctx.measureText(currentLine);
+
+                        drawLine(metrics);
+
+                        continue;
+                    }
+
+                    metrics = ctx.measureText(currentLine + (currentLine ? ' ' : '') + segment);
+                    
+                    if (metrics.width > width) {
+                        drawLine(metrics);
+
+                        currentLine = segment;
+                    } else {
+                        currentLine += (currentLine ? ' ' : '') + segment;
+                    }
+                }
+
+                ctx.fillText(currentLine, x, y);
             }
 
             function drawImageWithTint(imageName, x, y,  width, hight, tint, tintStrength, dx, dy) {
