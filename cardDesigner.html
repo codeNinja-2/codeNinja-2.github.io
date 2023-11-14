@@ -35,7 +35,7 @@
                         <option value="Craftspeople">Craftspeople</option>
                         <option value="Laborers">Laborers</option>
                         <option value="Farmer">Farmer</option>
-                        <option value="EnslavedPerson">Enslaved Person</option>
+                        <option value="EnslavedPeople">Enslaved People</option>
                     </select>
                     <br> <br>
 
@@ -68,7 +68,7 @@
                 craftspeople: "#78ffdb",
                 laborers: "#ff78b5",
                 farmer: "#c0ff78", 
-                enslavedPerson: "#ff9e78"};
+                enslavedPeople: "#ff9e78"};
 
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
@@ -90,7 +90,7 @@
                 const art = await getArtworkImage();
 
                 if (art) {
-                    let scale = 425 / art.height;
+                    let scale = 425 / art.width;
 
                     // 624, 425
                     let w = art.width * scale;
