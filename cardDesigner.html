@@ -1,0 +1,206 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English/Soc Stu Eygypt Card Creator</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB Garamond">
+    <style>
+        body, html {
+            font-family: "EB Garamond", sans-serif;
+            height: 100%;
+            margin: 0px;
+        }
+    </style>
+</head>
+    <body>
+        <div style="display: flex; flex-direction: horizontal; height: 100%; width: 100%;">
+            <div style="display: flex; padding: 16px; background: #f8f8f8;">
+                <canvas id="canvas" width="640" height="896" style="margin: auto; width: 320px; height: 445px; border-radius: 9px;"></canvas>
+            </div>
+            <div style="flex: 1; padding: 16px; display: flex;">
+                <div style="padding: 16px;">
+                    <b>Card Details</b> <br> <br>
+
+                    <span>Card Name</span> <br>
+                    <input type="text" id="cardName"> <br> <br>
+
+                    <span>Card Rank</span> <br>
+                    <select id="rank">
+                        <!--<option value="pharaoh">Pharaoh</option>-->
+                        <!--<option value="vizier">Vizier</option>-->
+                        <!--<option value="noble">Noble</option>-->
+                        <!--<option value="priest">Noble</option>-->
+                        <option value="Scribe">Scribe</option>
+                        <option value="Soldier">Soldier</option>
+                        <option value="Craftspeople">Craftspeople</option>
+                        <option value="Laborers">Laborers</option>
+                        <option value="Farmer">Farmer</option>
+                        <option value="EnslavedPerson">Enslaved Person</option>
+                    </select>
+                    <br> <br>
+
+                    <span>Artwork</span> <br>
+                    <input type="file" id="artworkFile">
+                </div>
+                <div style="padding: 16px;">
+                    <b>Card Credits</b> <br> <br>
+
+                    <span>Creator First Name</span> <br>
+                    <input type="text" id="creatorFName"> <br>
+                    <span>Creator Last Name</span> <br>
+                    <input type="text" id="creatorLName"> <br> <br>
+
+                    <span>Art Credit</span> <br>
+                    <input type="text" id="cardArtCredit"> <br><br>
+
+                    <span>Lore</span> <br>
+                    <input type="text" id="lore" height="700">  <br><br>
+
+                    <button id="generateButton"> Generate </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const cardTints = {
+                scribe: "#789eff",
+                soldier: "#ff7878",
+                craftspeople: "#78ffdb",
+                laborers: "#ff78b5",
+                farmer: "#c0ff78", 
+                enslavedPerson: "#ff9e78"};
+
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            generateButton.addEventListener("mousedown", generate);
+
+            const template = createImage('template.svg');
+
+            async function generate() {
+                ctx.clearRect(0, 0, 640, 896);
+
+                ctx.fillStyle = "black"
+
+                ctx.fillRect(7, 7, 626, 427)
+
+                ctx.fillStyle = "#222222";
+
+                ctx.fillRect(0, 436, 640, 1000);
+
+                const art = await getArtworkImage();
+
+                if (art) {
+                    let scale = 425 / art.height;
+
+                    // 624, 425
+                    let w = art.width * scale;
+                    let h = art.height * scale;
+
+                    console.log(w); console.log(h);
+
+                    ctx.drawImage(art, 320 - w / 2, 8, w, h);
+                }
+                
+                ctx.drawImage(template, 0, 0);
+                
+                ctx.fillStyle = "#eeeeee";
+
+                ctx.font = "15px EB Garamond";
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#ffffff88"
+                ctx.fillText("Art by: " + document.getElementById("cardArtCredit").value, 20, 415);
+
+                ctx.fillText("Card by: " + document.getElementById("creatorFName").value + " " + document.getElementById("creatorLName").value , 20, 876);
+
+                let rank = document.getElementById("rank").value;
+
+                ctx.font = "25px EB Garamond";
+
+
+
+                ctx.textAlign = "left";
+
+                ctx.fillStyle = "white"
+
+                drawTextWithWraping(100, 525, document.getElementById("lore").value, 420, 30, ctx);
+
+                let s = 0.5;
+                let x = 220;
+                let y = 413;
+
+                ctx.strokeStyle = cardTints[rank.toLowerCase()];
+                ctx.lineWidth = 5;
+
+                ctx.fillStyle = "black";
+
+                ctx.beginPath();
+                ctx.moveTo(50 * s + x, 0 * s + y);
+                ctx.lineTo(350 * s + x, 0 * s + y);
+                ctx.lineTo(400 * s + x, 50 * s + y);
+                ctx.lineTo(350 * s + x, 100 * s + y);
+                ctx.lineTo(50 * s + x, 100 * s + y);
+                ctx.lineTo(0 * s + x, 50 * s + y);
+                ctx.lineTo(50 * s + x, 0 * s + y);
+
+                ctx.fill();
+
+                ctx.fillStyle = cardTints[rank.toLowerCase()];
+
+                ctx.font = "25px EB Garamond";
+
+                ctx.textAlign = "center";
+                ctx.fillText(rank, 320, 443);
+                ctx.fillText(document.getElementById("cardName").value, 320, 30);
+            }
+
+            function drawTextWithWraping(x, y, text, width, lineSpacing, ctx) {
+                let words = text.split(" ");
+                let lineY = y
+                while (words.length > 0) {
+                    let line = "";
+                    while (ctx.measureText(line + " " + words[0]).width <= width || line == "") {
+                        console.log(ctx.measureText(line + " " + words[0]).width)
+                        line = line + " " + words.shift();
+                    } 
+
+                    console.log(line);
+                    ctx.fillText(line, x, lineY)
+                    lineY += lineSpacing
+                }
+            }
+
+            function drawImageWithTint(imageName, x, y,  width, hight, tint, tintStrength, dx, dy) {
+                tint = tint != undefined ? tint: "#000000";
+            }
+
+            function defualt(value, defualt) {
+                
+            }
+
+            function createImage(url) {
+                const image = new Image();
+                image.src = url;
+
+                return image;
+            }
+
+            function getArtworkImage() {
+                return new Promise(resolve => {
+                    const input = document.getElementById("artworkFile");
+
+                    if (input.files.length == 0) return null;
+
+                    const url = URL.createObjectURL(input.files[0]);
+                    const image = new Image();
+                    image.src = url;
+
+                    image.onload = () => {
+                        URL.revokeObjectURL(url);
+
+                        resolve(image);
+                    };
+                });
+            }
+        </script>
+    </body>
+</html>
