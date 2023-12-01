@@ -13,6 +13,7 @@
     </style>
 </head>
     <body>
+        <img src="card Template Back.svg" style="display:none" alt="blarf" id="cardBackTemplate">
         <div style="display: flex; flex-direction: horizontal; height: 100%; width: 100%;">
             <div style="display: flex; padding: 16px; background: #f8f8f8;">
                 <canvas id="canvas" width="640" height="896" style="margin: auto; width: 320px; height: 445px; border-radius: 9px;"></canvas>
@@ -57,6 +58,7 @@
                     <textarea id="lore"></textarea> <br><br>
 
                     <button id="generateButton">Generate</button>
+                    <button id="flipButton">Flip</button>
                 </div>
             </div>
         </div>
@@ -71,101 +73,118 @@
                 'Enslaved Person': "#ff9e78"
             };
 
+            let drawBack = false;
+
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
 
             generateButton.addEventListener("click", generate);
+            flipButton.addEventListener("click", function() {if(drawBack) {drawBack = false;}else {drawBack = true;} generate();});
 
             const template = createImage('template.svg');
 
             async function generate() {
                 ctx.clearRect(0, 0, 640, 896);
 
-                ctx.fillStyle = "black"
+                if (drawBack) {
+                    
+                    let text = drawTextWithWraping(50, 500, document.getElementById("lore").value, 550, 350, 1.1, ctx);
 
-                ctx.fillRect(7, 7, 626, 427)
+                    ctx.fillStyle = "#222222";
+                    ctx.fillRect(0, 0, 896, 1000);
 
-                ctx.fillStyle = "#222222";
+                    ctx.drawImage(document.getElementById("cardBackTemplate"), 0, 0);
 
-                ctx.fillRect(0, 436, 640, 1000);
+                    ctx.fillStyle = "white";
+                    ctx.font = "25px EB Garamond";
+                    ctx.textAlign = "left";
 
-                const art = await getArtworkImage();
+                    drawTextWithWraping(50, 61, text, 550, Infinity, 1.1, ctx);
+                }else {
+                    ctx.fillStyle = "black"
 
-                if (art) {
-                    let scale = 425 / art.height;
+                    //Image Background
+                    ctx.fillRect(7, 7, 626, 427)
 
-                    // 624, 425
-                    let w = art.width * scale;
-                    let h = art.height * scale;
+                    ctx.font = "25px EB Garamond";
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "white";
 
-                    console.log(w); console.log(h);
+                        ctx.fillText("No Artwork", 320, 200)
 
-                    ctx.drawImage(art, 320 - w / 2, 8, w, h);
+                    ctx.fillStyle = "#222222";
+
+                    //Gray Text Background (Use for back)
+                    ctx.fillRect(0, 436, 640, 1000);
+
+                    const art = await getArtworkImage();
+
+                    if (art) {
+                        let scale = 425 / art.height;
+
+                        let w = art.width * scale;
+                        let h = art.height * scale;
+
+                        ctx.drawImage(art, 320 - w / 2, 8, w, h);
+                    }
+                    
+                    ctx.drawImage(template, 0, 0);
+                    
+                    ctx.fillStyle = "#eeeeee";
+
+                    ctx.font = "15px EB Garamond";
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = "#ffffff88";
+                    ctx.fillText("Art by: " + document.getElementById("cardArtCredit").value, 20, 415);
+
+                    ctx.fillText("Card by: " + document.getElementById("creatorFName").value + " " + document.getElementById("creatorLName").value , 20, 876);
+
+                    let rank = document.getElementById("rank").value;
+
+                    ctx.font = "25px EB Garamond";
+
+
+
+                    ctx.textAlign = "left";
+
+                    ctx.fillStyle = "white";
+
+                    drawTextWithWraping(50, 500, document.getElementById("lore").value, 550, 350, 1.1, ctx);
+
+                    let s = 0.5;
+                    let x = 220;
+                    let y = 413;
+
+                    ctx.strokeStyle = cardTints[rank];
+                    ctx.lineWidth = 5;
+
+                    ctx.fillStyle = "black";
+
+                    ctx.beginPath();
+                    ctx.moveTo(50 * s + x, 0 * s + y);
+                    ctx.lineTo(350 * s + x, 0 * s + y);
+                    ctx.lineTo(400 * s + x, 50 * s + y);
+                    ctx.lineTo(350 * s + x, 100 * s + y);
+                    ctx.lineTo(50 * s + x, 100 * s + y);
+                    ctx.lineTo(0 * s + x, 50 * s + y);
+                    ctx.lineTo(50 * s + x, 0 * s + y);
+
+                    ctx.fill();
+
+                    ctx.fillStyle = cardTints[rank];
+
+                    ctx.font = "25px EB Garamond";
+
+                    ctx.textAlign = "center";
+                    ctx.fillText(rank, 320, 443);
+                    ctx.fillText(document.getElementById("cardName").value, 320, 30);
                 }
+
                 
-                ctx.drawImage(template, 0, 0);
-                
-                ctx.fillStyle = "#eeeeee";
-
-                ctx.font = "15px EB Garamond";
-                ctx.textAlign = "left";
-                ctx.fillStyle = "#ffffff88"
-                ctx.fillText("Art by: " + document.getElementById("cardArtCredit").value, 20, 415);
-
-                ctx.fillText("Card by: " + document.getElementById("creatorFName").value + " " + document.getElementById("creatorLName").value , 20, 876);
-
-                let rank = document.getElementById("rank").value;
-
-                ctx.font = "25px EB Garamond";
-
-
-
-                ctx.textAlign = "left";
-
-                ctx.fillStyle = "white"
-
-                drawTextWithWraping(50, 500, document.getElementById("lore").value, 550, 1.1, ctx);
-
-                let s = 0.5;
-                let x = 220;
-                let y = 413;
-
-                ctx.strokeStyle = cardTints[rank];
-                ctx.lineWidth = 5;
-
-                ctx.fillStyle = "black";
-
-                ctx.beginPath();
-                ctx.moveTo(50 * s + x, 0 * s + y);
-                ctx.lineTo(350 * s + x, 0 * s + y);
-                ctx.lineTo(400 * s + x, 50 * s + y);
-                ctx.lineTo(350 * s + x, 100 * s + y);
-                ctx.lineTo(50 * s + x, 100 * s + y);
-                ctx.lineTo(0 * s + x, 50 * s + y);
-                ctx.lineTo(50 * s + x, 0 * s + y);
-
-                ctx.fill();
-
-                ctx.fillStyle = cardTints[rank];
-
-                ctx.font = "25px EB Garamond";
-
-                ctx.textAlign = "center";
-                ctx.fillText(rank, 320, 443);
-                ctx.fillText(document.getElementById("cardName").value, 320, 30);
             }
 
-            function drawTextWithWraping(x, y, text, width, lineSpacing, ctx) {
-                const segments = [];
-
-                for (const char of text) {
-                    if (char == '\n') segments.push('\n', '');
-                    else if (char == ' ') segments.push('');
-                    else {
-                        if (segments.length > 0) segments[segments.length - 1] += char;
-                        else segments.push(char);
-                    }
-                }
+            function drawTextWithWraping(x, y, text, width, height, lineSpacing, ctx) {
+                let endY = y + height;
 
                 const drawLine = metrics => {
                     ctx.fillText(currentLine, x, y);
@@ -174,13 +193,92 @@
                     currentLine = '';
                 }
 
-                let currentLine = '';
+                const hasExceeded = metrics => {
+                    return endY <= y + metrics.fontBoundingBoxDescent;
+                }
 
-                for (const segment of segments) {
+                let currentLine = '';
+                let index = 0;
+
+                for (const char of text) {
                     let metrics;
 
-                    if (segment == '\n') {
+                    if (char == '\n') {
                         metrics = ctx.measureText(currentLine);
+
+                        drawLine(metrics);
+
+                        if (hasExceeded(metrics)) return text.slice(index + 1);
+
+                        continue;
+                    }
+
+                    metrics = ctx.measureText(currentLine + char);
+                    
+                    if (char == " " && metrics.width > width) {
+                        drawLine(metrics);
+
+                        if (hasExceeded(metrics)) return text.slice(index + 1);
+
+                        currentLine = char;
+                    } else if (metrics.width > width) {
+                        const lastSpace = currentLine.lastIndexOf(' ');
+                        const lastWord = currentLine.slice(lastSpace);
+
+                        currentLine = currentLine.slice(0, lastSpace);
+
+                        drawLine(metrics);
+
+                        if (hasExceeded(metrics)) return lastWord + text.slice(index);
+
+                        currentLine = lastWord + char;
+                    } else {
+                        currentLine += char;
+                    }
+
+                    index++;
+                }
+
+                ctx.fillText(currentLine, x, y);
+
+                return "";
+            }
+
+            function drawImageWithTint(imageName, x, y,  width, hight, tint, tintStrength, dx, dy) {
+                tint = tint != undefined ? tint: "#000000";
+            }
+
+            function defualt(value, defualt) {
+                
+            }
+
+            function createImage(url) {
+                const image = new Image();
+                image.src = url;
+
+                return image;
+            }
+
+            function getArtworkImage() {
+                return new Promise(resolve => {
+                    const input = document.getElementById("artworkFile");
+
+                    if (input.files.length == 0) return null;
+
+                    const url = URL.createObjectURL(input.files[0]);
+                    const image = new Image();
+                    image.src = url;
+
+                    image.onload = () => {
+                        URL.revokeObjectURL(url);
+
+                        resolve(image);
+                    };
+                });
+            }
+        </script>
+    </body>
+</html>
 
                         drawLine(metrics);
 
